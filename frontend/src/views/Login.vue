@@ -49,6 +49,7 @@
 
           <q-form class="login-form" @submit.prevent="entrar">
             <q-input
+              ref="refEmail"
               v-model="form.email"
               type="email"
               outlined
@@ -56,11 +57,14 @@
               autocomplete="off"
               name="correo-sesion"
               class="login-input"
+              :error="errores.email"
+              @update:model-value="limpiarError(errores, 'email')"
             >
               <template #prepend><q-icon name="mail_outline" /></template>
             </q-input>
 
             <q-input
+              ref="refPassword"
               v-model="form.password"
               :type="verPassword ? 'text' : 'password'"
               outlined
@@ -69,7 +73,9 @@
               name="clave-sesion"
               :readonly="esperandoFoco"
               class="login-input"
+              :error="errores.password"
               @focus="esperandoFoco = false"
+              @update:model-value="limpiarError(errores, 'password')"
             >
               <template #prepend><q-icon name="lock_outline" /></template>
               <template #append>
@@ -120,6 +126,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.store'
 import BotonTema from '../components/BotonTema.vue'
 import alerta from '../services/alertas'
+import { validarCampoAVez, limpiarError } from '../services/validacion'
 import { avisarSeguridad } from '../services/seguridad'
 
 const auth = useAuthStore()
@@ -130,17 +137,45 @@ const verPassword = ref(false)
 const cargando = ref(false)
 const esperandoFoco = ref(true)
 
+// Campos marcados en rojo. Se pinta con :error y se borra al escribir.
+const errores = ref({ email: false, password: false })
+const refEmail = ref(null)
+const refPassword = ref(null)
+
 async function entrar() {
   const email = form.value.email.trim()
   const password = form.value.password
 
-  // Validacion propia (sin :rules de HTML)
-  if (!email || !password) {
-    return alerta.aviso('Campos vacios', 'Escribe tu correo y tu contrasena')
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return alerta.aviso('Correo invalido', 'Revisa el formato del correo electronico')
-  }
+  // Validacion UN CAMPO A LA VEZ: se detiene en el primero que falte, lo
+  // pinta de rojo, lo enfoca y avisa solo de ese. El usuario lo corrige y
+  // al volver a enviar aparece el siguiente. (sin :rules de HTML)
+  const ok = await validarCampoAVez(
+    [
+      {
+        clave: 'email',
+        ref: refEmail,
+        ok: !!email,
+        titulo: 'Falta el correo',
+        mensaje: 'Escribe tu correo electronico'
+      },
+      {
+        clave: 'email',
+        ref: refEmail,
+        ok: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+        titulo: 'Correo invalido',
+        mensaje: 'Revisa el formato del correo electronico'
+      },
+      {
+        clave: 'password',
+        ref: refPassword,
+        ok: !!password,
+        titulo: 'Falta la contrasena',
+        mensaje: 'Escribe tu contrasena'
+      }
+    ],
+    errores
+  )
+  if (!ok) return
 
   // Si la clave es debil o filtrada sale NUESTRA alerta en lugar del aviso rojo
   const seguir = await avisarSeguridad(password)

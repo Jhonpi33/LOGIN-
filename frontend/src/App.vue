@@ -19,27 +19,20 @@
           <span class="app-brand-name">Campus</span>
         </q-toolbar-title>
 
-        <!-- Acceso rápido: un clic y caes en Inicio (se resalta cuando ya estás ahí) -->
+        <!-- Mi perfil: un clic y caes en la pantalla de la cuenta -->
         <q-btn
           flat
           dense
           no-caps
-          icon="home"
-          :label="$q.screen.lt.sm ? '' : 'Inicio'"
-          aria-label="Ir al inicio"
-          :to="{ name: 'home' }"
+          icon="account_circle"
+          :label="$q.screen.lt.sm ? '' : 'Perfil'"
+          aria-label="Ir a mi perfil"
+          :to="{ name: 'perfil' }"
           active-class="app-inicio--activo"
           class="app-inicio q-ml-sm"
         />
 
         <boton-tema class="text-white q-ml-xs q-mr-xs" />
-
-        <template v-if="auth.autenticado">
-          <q-badge color="white" text-color="primary" class="app-user-badge q-mr-sm q-pa-xs text-weight-bold">
-            {{ auth.nombre }}
-          </q-badge>
-          <q-btn flat dense icon="logout" label="Salir" class="app-logout" @click="cerrarSesion" />
-        </template>
       </q-toolbar>
     </q-header>
 
@@ -85,13 +78,6 @@
         </q-item>
 
         <q-separator spaced />
-
-        <q-item-label header class="text-grey-6 text-caption text-weight-bold">SESIÓN</q-item-label>
-
-        <q-item clickable v-ripple @click="cerrarSesion">
-          <q-item-section avatar><q-icon name="logout" color="negative" /></q-item-section>
-          <q-item-section class="text-negative">Cerrar sesion</q-item-section>
-        </q-item>
       </q-list>
 
       <div class="absolute-bottom q-pa-sm text-center text-caption text-grey-6">
@@ -111,18 +97,16 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { Notivue, Notification } from 'notivue'
 import { useAuthStore } from './stores/auth.store'
 import { usePreferenciasStore } from './stores/preferencias.store'
 import { temaClaro, temaOscuro } from './styles/temas-notivue'
 import BotonTema from './components/BotonTema.vue'
-import alerta from './services/alertas'
 
 const auth = useAuthStore()
 const prefs = usePreferenciasStore()
-const router = useRouter()
 const route = useRoute()
 const $q = useQuasar()
 
@@ -142,20 +126,11 @@ const menu = [
   { ruta: 'home', label: 'Inicio', icono: 'dashboard' },
   { ruta: 'cursos', label: 'Cursos', icono: 'menu_book' },
   { ruta: 'aprendices', label: 'Aprendices', icono: 'groups' },
-  { ruta: 'usuarios', label: 'Usuarios', icono: 'manage_accounts' }
+  { ruta: 'perfil', label: 'Mi perfil', icono: 'account_circle' }
 ]
 
 function toggleDrawer() {
   drawerAbierto.value = !drawerAbierto.value
-}
-
-async function cerrarSesion() {
-  const ok = await alerta.confirmar('Cerrar sesion', 'Seguro que quieres salir?')
-  if (!ok) return
-
-  auth.logout()
-  alerta.toast('Sesion cerrada', 'info')
-  router.push({ name: 'login' })
 }
 </script>
 

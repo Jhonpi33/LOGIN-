@@ -208,18 +208,37 @@
         <q-separator />
 
         <q-card-section class="q-gutter-md">
-          <q-input v-model="form.nombre" outlined dense label="Nombre completo" />
+          <q-input
+            ref="refNombre"
+            v-model="form.nombre"
+            outlined
+            dense
+            label="Nombre completo"
+            :error="errores.nombre"
+            @update:model-value="limpiarError(errores, 'nombre')"
+          />
 
-          <q-input v-model="form.email" outlined dense label="Correo electronico" />
+          <q-input
+            ref="refEmail"
+            v-model="form.email"
+            outlined
+            dense
+            label="Correo electronico"
+            :error="errores.email"
+            @update:model-value="limpiarError(errores, 'email')"
+          />
 
           <q-input
             v-if="modo === 'nuevo'"
+            ref="refPassword"
             v-model="form.password"
             :type="verPassword ? 'text' : 'password'"
             outlined
             dense
             autocomplete="off"
             label="Contrasena (minimo 6 caracteres)"
+            :error="errores.password"
+            @update:model-value="limpiarError(errores, 'password')"
           >
             <template #prepend><q-icon name="lock" color="primary" /></template>
             <template #append>
@@ -312,6 +331,7 @@ import EncabezadoVista from '../components/EncabezadoVista.vue'
 import { useAuthStore } from '../stores/auth.store'
 import { usuariosService } from '../services/usuarios.service'
 import alerta from '../services/alertas'
+import { validarCampoAVez, limpiarError } from '../services/validacion'
 import { avisarSeguridad } from '../services/seguridad'
 
 const auth = useAuthStore()
@@ -355,6 +375,16 @@ const modo = ref('nuevo')
 const form = ref({ _id: '', nombre: '', email: '', password: '', rol: 'USER' })
 const verPassword = ref(false)
 
+// Campos marcados en rojo (:error en el q-input) y refs para enfocarlos
+const errores = ref({ nombre: false, email: false, password: false })
+const refNombre = ref(null)
+const refEmail = ref(null)
+const refPassword = ref(null)
+
+function limpiarErrores() {
+  errores.value = { nombre: false, email: false, password: false }
+}
+
 // Cambio de rol
 const rolAbierto = ref(false)
 const seleccionado = ref(null)
@@ -376,6 +406,7 @@ function abrirNuevo() {
   modo.value = 'nuevo'
   form.value = { _id: '', nombre: '', email: '', password: '', rol: 'USER' }
   verPassword.value = false
+  limpiarErrores()
   abierto.value = true
 }
 
@@ -388,6 +419,7 @@ function abrirEditar(fila) {
     password: '',
     rol: fila.rol
   }
+  limpiarErrores()
   abierto.value = true
 }
 
@@ -395,17 +427,47 @@ async function guardar() {
   const nombre = form.value.nombre.trim()
   const email = form.value.email.trim()
 
-  if (!nombre || !email) {
-    return alerta.aviso('Campos vacios', 'Nombre y correo son obligatorios')
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return alerta.aviso('Correo invalido', 'Revisa el formato del correo electronico')
+  // Validacion UN CAMPO A LA VEZ: se detiene en el primero que falte, lo pinta
+  // de rojo, lo deja enfocado y avisa solo de ese.
+  const campos = [
+    {
+      clave: 'nombre',
+      ref: refNombre,
+      ok: !!nombre,
+      titulo: 'Falta el nombre',
+      mensaje: 'Escribe el nombre completo'
+    },
+    {
+      clave: 'email',
+      ref: refEmail,
+      ok: !!email,
+      titulo: 'Falta el correo',
+      mensaje: 'Escribe el correo electronico'
+    },
+    {
+      clave: 'email',
+      ref: refEmail,
+      ok: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+      titulo: 'Correo invalido',
+      mensaje: 'Revisa el formato del correo electronico'
+    }
+  ]
+
+  // La contrasena solo aplica al crear un usuario nuevo
+  if (modo.value === 'nuevo') {
+    campos.push({
+      clave: 'password',
+      ref: refPassword,
+      ok: form.value.password.length >= 6,
+      titulo: 'Contrasena corta',
+      mensaje: 'La contrasena debe tener al menos 6 caracteres'
+    })
   }
 
+  const ok = await validarCampoAVez(campos, errores)
+  if (!ok) return
+
   if (modo.value === 'nuevo') {
-    if (form.value.password.length < 6) {
-      return alerta.aviso('Contrasena corta', 'La contrasena debe tener al menos 6 caracteres')
-    }
     // clave debil o filtrada -> sale NUESTRA alerta, no la del navegador
     const seguir = await avisarSeguridad(form.value.password)
     if (!seguir) return

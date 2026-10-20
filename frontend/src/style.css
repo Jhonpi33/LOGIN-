@@ -10,11 +10,14 @@
   --app-sombra: 0 12px 34px rgba(31, 56, 105, 0.07);
 
   /*
-   * notivue trae --nv-z: 500 y el header de Quasar pinta con z-index: 1000,
-   * así que los avisos salían DETRÁS del header (cortados, "debajo del hero").
-   * Se sube por encima de todo: queda flotando y completamente visible.
+   * notivue trae --nv-z: 500. Con eso los avisos quedaban DETRÁS de todo:
+   *  - el header de Quasar pinta en z-index: 1000
+   *  - SweetAlert2 (los modales de confirmar/borrar) pinta en 1060
+   *  - los q-dialog de Quasar pinta hasta 9998
+   * Se sube por encima de TODOS para que cualquier error se vea encima
+   * del modal que lo provocó.
    */
-  --nv-z: 2000;
+  --nv-z: 10000;
 }
 
 body.body--dark {

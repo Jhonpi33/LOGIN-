@@ -106,14 +106,33 @@
         <q-separator />
 
         <q-card-section class="q-gutter-md">
-          <q-input v-model="form.codigo" outlined dense label="Codigo" />
-          <q-input v-model="form.nombre" outlined dense label="Nombre" />
           <q-input
+            ref="refCodigo"
+            v-model="form.codigo"
+            outlined
+            dense
+            label="Codigo"
+            :error="errores.codigo"
+            @update:model-value="limpiarError(errores, 'codigo')"
+          />
+          <q-input
+            ref="refNombre"
+            v-model="form.nombre"
+            outlined
+            dense
+            label="Nombre"
+            :error="errores.nombre"
+            @update:model-value="limpiarError(errores, 'nombre')"
+          />
+          <q-input
+            ref="refDuracion"
             v-model.number="form.duracion"
             type="number"
             outlined
             dense
             label="Duracion en horas"
+            :error="errores.duracion"
+            @update:model-value="limpiarError(errores, 'duracion')"
           />
         </q-card-section>
 
@@ -138,6 +157,7 @@ import { ref, computed, onMounted } from 'vue'
 import EncabezadoVista from '../components/EncabezadoVista.vue'
 import { cursosService } from '../services/cursos.service'
 import alerta from '../services/alertas'
+import { validarCampoAVez, limpiarError } from '../services/validacion'
 
 const cursos = ref([])
 const cargando = ref(false)
@@ -179,6 +199,16 @@ const modo = ref('nuevo')
 const editId = ref(null)
 const form = ref({ codigo: '', nombre: '', duracion: null })
 
+// Campos marcados en rojo (:error en el q-input) y refs para enfocarlos
+const errores = ref({ codigo: false, nombre: false, duracion: false })
+const refCodigo = ref(null)
+const refNombre = ref(null)
+const refDuracion = ref(null)
+
+function limpiarErrores() {
+  errores.value = { codigo: false, nombre: false, duracion: false }
+}
+
 async function cargar() {
   cargando.value = true
   try {
@@ -195,6 +225,7 @@ function abrirNuevo() {
   modo.value = 'nuevo'
   editId.value = null
   form.value = { codigo: '', nombre: '', duracion: null }
+  limpiarErrores()
   abierto.value = true
 }
 
@@ -202,6 +233,7 @@ function abrirEditar(fila) {
   modo.value = 'editar'
   editId.value = fila._id
   form.value = { codigo: fila.codigo, nombre: fila.nombre, duracion: fila.duracion }
+  limpiarErrores()
   abierto.value = true
 }
 
@@ -210,13 +242,35 @@ async function guardar() {
   const nombre = (form.value.nombre || '').trim()
   const duracion = Number(form.value.duracion)
 
-  // Validacion propia: sin :rules de HTML, el aviso lo pinta SweetAlert2
-  if (!codigo || !nombre) {
-    return alerta.aviso('Campos vacios', 'Codigo y nombre son obligatorios')
-  }
-  if (!Number.isInteger(duracion) || duracion <= 0) {
-    return alerta.aviso('Duracion invalida', 'Escribe un numero entero mayor a 0')
-  }
+  // Validacion UN CAMPO A LA VEZ: se detiene en el primero que falte, lo pinta
+  // de rojo, lo deja enfocado y avisa solo de ese. (sin :rules de HTML)
+  const ok = await validarCampoAVez(
+    [
+      {
+        clave: 'codigo',
+        ref: refCodigo,
+        ok: !!codigo,
+        titulo: 'Falta el codigo',
+        mensaje: 'Escribe el codigo del curso'
+      },
+      {
+        clave: 'nombre',
+        ref: refNombre,
+        ok: !!nombre,
+        titulo: 'Falta el nombre',
+        mensaje: 'Escribe el nombre del curso'
+      },
+      {
+        clave: 'duracion',
+        ref: refDuracion,
+        ok: Number.isInteger(duracion) && duracion > 0,
+        titulo: 'Duracion invalida',
+        mensaje: 'Escribe un numero entero mayor a 0'
+      }
+    ],
+    errores
+  )
+  if (!ok) return
 
   guardando.value = true
   try {

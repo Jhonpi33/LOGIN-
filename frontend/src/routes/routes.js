@@ -3,6 +3,7 @@ import Home from '../views/Home.vue'
 import Cursos from '../views/Cursos.vue'
 import Aprendices from '../views/Aprendices.vue'
 import Usuarios from '../views/Usuarios.vue'
+import Perfil from '../views/Perfil.vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth.store'
 
@@ -12,6 +13,7 @@ const routes = [
   { path: '/cursos', name: 'cursos', component: Cursos },
   { path: '/aprendices', name: 'aprendices', component: Aprendices },
   { path: '/usuarios', name: 'usuarios', component: Usuarios },
+  { path: '/perfil', name: 'perfil', component: Perfil },
   { path: '/', redirect: '/home' },
   { path: '/:pathMatch(.*)*', redirect: '/' } // 404 -> inicio
 ]

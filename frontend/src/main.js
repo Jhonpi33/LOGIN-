@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
-import { Quasar } from 'quasar'          // componentes; los avisos son de notivue
-import { createNotivue } from 'notivue'  // notificaciones tipo "toast"
+import { Quasar } from 'quasar'    // componentes; los avisos son de notivue
+import langEs from 'quasar/lang/es'        // tablas, date-pickers y dialogs en español
+import { createNotivue } from 'notivue'    // notificaciones tipo "toast"
 import App from './App.vue'
 import { router } from './routes/routes.js'
 import { createPinia } from 'pinia'
@@ -35,7 +36,10 @@ const app = createApp(App)
 app.use(notivue) // 3) notivue antes del mount para poder usar push.*
 app.use(Quasar, {
   plugins: {},
-  // 4) paleta del proyecto: azul rey + gris
+  // 4) idioma de los componentes de Quasar: "Records per page" pasa a ser
+  //    "Filas por página" y lo mismo con todos los textos internos de las tablas
+  lang: langEs,
+  // 5) paleta del proyecto: azul rey + gris
   config: {
     brand: {
       primary: '#4169E1',
@@ -49,7 +53,7 @@ app.use(Quasar, {
     }
   }
 })
-app.use(pinia)                   // 5) Pinia ANTES de cualquier store
-pinia.use(piniaPluginPersistedstate) // 6) plugin de persistencia
-app.use(router)                  // 7) Router al final
+app.use(pinia)                   // 6) Pinia ANTES de cualquier store
+pinia.use(piniaPluginPersistedstate) // 7) plugin de persistencia
+app.use(router)                  // 8) Router al final
 app.mount('#app')

@@ -124,10 +124,35 @@
         <q-separator />
 
         <q-card-section class="q-gutter-md">
-          <q-input v-model="form.documento" outlined dense label="Documento" />
-          <q-input v-model="form.nombre" outlined dense label="Nombre completo" />
-          <q-input v-model="form.email" outlined dense label="Correo electronico" />
+          <q-input
+            ref="refDocumento"
+            v-model="form.documento"
+            outlined
+            dense
+            label="Documento"
+            :error="errores.documento"
+            @update:model-value="limpiarError(errores, 'documento')"
+          />
+          <q-input
+            ref="refNombre"
+            v-model="form.nombre"
+            outlined
+            dense
+            label="Nombre completo"
+            :error="errores.nombre"
+            @update:model-value="limpiarError(errores, 'nombre')"
+          />
+          <q-input
+            ref="refEmail"
+            v-model="form.email"
+            outlined
+            dense
+            label="Correo electronico"
+            :error="errores.email"
+            @update:model-value="limpiarError(errores, 'email')"
+          />
           <q-select
+            ref="refCurso"
             v-model="form.curso"
             outlined
             dense
@@ -135,6 +160,8 @@
             map-value
             :options="opcionesCursos"
             label="Curso"
+            :error="errores.curso"
+            @update:model-value="limpiarError(errores, 'curso')"
           />
         </q-card-section>
 
@@ -160,6 +187,7 @@ import EncabezadoVista from '../components/EncabezadoVista.vue'
 import { aprendicesService } from '../services/aprendices.service'
 import { cursosService } from '../services/cursos.service'
 import alerta from '../services/alertas'
+import { validarCampoAVez, limpiarError } from '../services/validacion'
 
 const aprendices = ref([])
 const cursos = ref([])
@@ -205,6 +233,17 @@ const modo = ref('nuevo')
 const editId = ref(null)
 const form = ref({ documento: '', nombre: '', email: '', curso: '' })
 
+// Campos marcados en rojo (:error en el q-input) y refs para enfocarlos
+const errores = ref({ documento: false, nombre: false, email: false, curso: false })
+const refDocumento = ref(null)
+const refNombre = ref(null)
+const refEmail = ref(null)
+const refCurso = ref(null)
+
+function limpiarErrores() {
+  errores.value = { documento: false, nombre: false, email: false, curso: false }
+}
+
 async function cargar() {
   cargando.value = true
   try {
@@ -222,6 +261,7 @@ function abrirNuevo() {
   modo.value = 'nuevo'
   editId.value = null
   form.value = { documento: '', nombre: '', email: '', curso: '' }
+  limpiarErrores()
   abierto.value = true
 }
 
@@ -234,6 +274,7 @@ function abrirEditar(fila) {
     email: fila.email,
     curso: fila.curso?._id || ''
   }
+  limpiarErrores()
   abierto.value = true
 }
 
@@ -242,15 +283,50 @@ async function guardar() {
   const nombre = (form.value.nombre || '').trim()
   const email = (form.value.email || '').trim()
 
-  if (!documento || !nombre || !email) {
-    return alerta.aviso('Campos vacios', 'Documento, nombre y correo son obligatorios')
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return alerta.aviso('Correo invalido', 'Revisa el formato del correo electronico')
-  }
-  if (!form.value.curso) {
-    return alerta.aviso('Falta el curso', 'Selecciona el curso del aprendiz')
-  }
+  // Validacion UN CAMPO A LA VEZ: se detiene en el primero que falte, lo pinta
+  // de rojo, lo deja enfocado y avisa solo de ese. El usuario lo corrige y al
+  // volver a guardar aparece el siguiente. Asi se va guiando de uno en uno.
+  const ok = await validarCampoAVez(
+    [
+      {
+        clave: 'documento',
+        ref: refDocumento,
+        ok: !!documento,
+        titulo: 'Falta el documento',
+        mensaje: 'Escribe el numero de documento'
+      },
+      {
+        clave: 'nombre',
+        ref: refNombre,
+        ok: !!nombre,
+        titulo: 'Falta el nombre',
+        mensaje: 'Escribe el nombre completo'
+      },
+      {
+        clave: 'email',
+        ref: refEmail,
+        ok: !!email,
+        titulo: 'Falta el correo',
+        mensaje: 'Escribe el correo electronico'
+      },
+      {
+        clave: 'email',
+        ref: refEmail,
+        ok: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+        titulo: 'Correo invalido',
+        mensaje: 'Revisa el formato del correo electronico'
+      },
+      {
+        clave: 'curso',
+        ref: refCurso,
+        ok: !!form.value.curso,
+        titulo: 'Falta el curso',
+        mensaje: 'Selecciona el curso del aprendiz'
+      }
+    ],
+    errores
+  )
+  if (!ok) return
 
   guardando.value = true
   try {
