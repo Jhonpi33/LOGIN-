@@ -1,0 +1,24 @@
+# Ignorados por el padre; los subcarpetas tienen los suyos propios.
+# Regla de oro: NUNCA subir node_modules ni archivos .env (van las contraseñas).
+
+# Sistema
+.DS_Store
+
+# Dependencias (se reinstalan con npm install)
+node_modules/
+
+# Secretos: contraseñas de MongoDB, clave JWT, puertos
+.env
+.env.local
+.env.*.local
+
+# Compilados del frontend
+dist/
+build/
+coverage/
+
+# Logs
+*.log
+
+# Respaldo del Git del profesor (no forma parte del proyecto)
+.git-profesor-backup/

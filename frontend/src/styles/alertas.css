@@ -1,0 +1,154 @@
+/* =========================================================================
+   DIÁLOGOS de SweetAlert2 (confirmar / contraseña insegura / cargando).
+
+   Los AVISOS no son de SweetAlert2: los hace notivue (ver temas-notivue.js).
+   Aquí solo quedan las ventanas con botones Aceptar / Cancelar.
+
+   Se importa DESPUÉS de sweetalert2.min.css.
+   Usa los tokens de src/style.css (--app-*) para adaptarse solo al modo claro
+   y al modo oscuro, igual que el resto de la app.
+   ========================================================================= */
+
+/* --- Fondo detrás del diálogo --- */
+.swal2-container {
+  --swal2-backdrop: rgba(8, 16, 36, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+/* --- Tarjeta --- */
+.swal2-popup {
+  --swal2-border-radius: 20px;
+  --swal2-background: var(--app-superficie, #ffffff);
+  --swal2-border: 1px solid var(--app-borde, #e4eaf4);
+  --swal2-box-shadow: 0 28px 70px rgba(15, 36, 84, 0.24);
+  --swal2-title-color: var(--app-texto, #17243e);
+  --swal2-title-font-size: 1.12rem;
+  --swal2-title-font-weight: 700;
+  --swal2-html-container-color: var(--app-texto-2, #71809a);
+  --swal2-html-container-font-size: 0.9rem;
+  --swal2-html-container-line-height: 1.65;
+  --swal2-icon-opacity: 1;
+
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  padding: 1.9rem 1.6rem 1.5rem;
+  border: var(--swal2-border);
+  border-radius: var(--swal2-border-radius);
+  text-align: center;
+}
+
+body.body--dark .swal2-popup {
+  --swal2-box-shadow: 0 28px 70px rgba(0, 0, 0, 0.55);
+}
+
+/* --- Icono: chip suave en vez del aro grueso de fábrica --------------- */
+.swal2-icon {
+  width: 3.4rem;
+  height: 3.4rem;
+  margin: 0 auto 1rem;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.65rem;
+  line-height: 3.4rem;
+}
+.swal2-icon.swal2-question {
+  background: rgba(65, 105, 225, 0.12);
+  color: #4169e1;
+}
+.swal2-icon.swal2-warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+.swal2-icon.swal2-success {
+  background: rgba(22, 163, 74, 0.13);
+  color: #16a34a;
+}
+.swal2-icon.swal2-error {
+  background: rgba(220, 38, 38, 0.13);
+  color: #dc2626;
+}
+.swal2-icon.swal2-info {
+  background: rgba(65, 105, 225, 0.12);
+  color: #4169e1;
+}
+
+/* --- Título y texto --- */
+.swal2-title {
+  padding: 0;
+  line-height: 1.3;
+}
+.swal2-html-container {
+  margin: 0.6rem 0 0 !important;
+  padding: 0;
+}
+.swal2-html-container strong {
+  color: var(--app-texto, #17243e);
+  font-weight: 700;
+}
+
+/* --- Acciones: botones píldora, primario azul rey --- */
+.swal2-actions {
+  width: 100%;
+  margin: 1.5rem 0 0;
+  gap: 10px;
+}
+
+.swal2-popup .swal2-styled {
+  min-width: 140px;
+  height: 44px;
+  margin: 0;
+  padding: 0 1.5rem;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: filter 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+}
+.swal2-popup .swal2-styled:focus {
+  outline: none;
+}
+
+/* Aceptar */
+.swal2-popup .swal2-styled.swal2-confirm {
+  background-color: #4169e1 !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 22px rgba(65, 105, 225, 0.32);
+}
+.swal2-popup .swal2-styled.swal2-confirm:hover {
+  background-color: #3457c4 !important;
+  transform: translateY(-1px);
+}
+.swal2-popup .swal2-styled.swal2-confirm:focus {
+  box-shadow: 0 0 0 4px rgba(65, 105, 225, 0.28);
+}
+
+/* Cancelar */
+.swal2-popup .swal2-styled.swal2-cancel {
+  background-color: transparent !important;
+  color: var(--app-texto-2, #71809a) !important;
+  box-shadow: inset 0 0 0 1px var(--app-borde, #e4eaf4);
+}
+.swal2-popup .swal2-styled.swal2-cancel:hover {
+  background-color: rgba(65, 105, 225, 0.07) !important;
+  color: var(--app-azul, #4169e1) !important;
+}
+
+/* --- Móvil: botones uno debajo del otro y a todo lo ancho --- */
+@media (max-width: 480px) {
+  .swal2-popup {
+    width: calc(100vw - 28px);
+    padding: 1.5rem 1.2rem 1.3rem;
+  }
+  .swal2-actions {
+    flex-direction: column-reverse;
+  }
+  .swal2-popup .swal2-styled {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* --- Overlay de "cargando" --- */
+.swal2-loading {
+  --swal2-loading: #4169e1;
+}
