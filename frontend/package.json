@@ -9,7 +9,7 @@
     "dev:web": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "build:backend": "vite build && node scripts/copiar-al-backend.mjs"
+    "build:backend": "VITE_API_URL= vite build && node scripts/copiar-al-backend.mjs"
   },
   "dependencies": {
     "@quasar/extras": "^2.0.4",
