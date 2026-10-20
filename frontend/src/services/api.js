@@ -2,8 +2,13 @@ import axios from 'axios'
 import { useAuthStore } from '../stores/auth.store'
 
 // Instancia unica: si mañana cambia la URL del backend, se cambia en UN solo lugar.
+//
+//  - EN DESARROLLO: el frontend corre en :5173 y el backend en :4500, así que
+//    hay que poner la URL completa (sale de frontend/.env -> VITE_API_URL).
+//  - EN PRODUCCION (Render): el backend SIRVE el frontend, los dos viven en el
+//    mismo dominio, así que basta con "/api" (relativo a donde esté la pagina).
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // http://localhost:4500/api
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   headers: { 'Content-Type': 'application/json' }
 })
 
