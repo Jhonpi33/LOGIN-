@@ -1,0 +1,25 @@
+# Blueprint de Render: API + frontend compilado en UN solo servicio.
+#
+# El backend sirve el build del frontend (SERVIR_FRONTEND=true) y tiene
+# SPA fallback en server.js, así que las rutas profundas (/home, /cursos...)
+# responden index.html sin necesidad de reglas de rewrite.
+#
+# Base de datos y clave JWT: se piden en el dashboard de Render al crear
+# el Blueprint (sync: false / generateValue: true).
+services:
+  - type: web
+    name: campus-gestion
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm --prefix frontend install && npm --prefix frontend run build:backend
+    startCommand: npm start
+    healthCheckPath: /api/estado
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URL
+        sync: false
+      - key: SECRETORPRIVATEKEY
+        generateValue: true
+      - key: SERVIR_FRONTEND
+        value: 'true'
